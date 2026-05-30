@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login — NagarikSwasthya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../images/logo.png" alt="Logo" class="logo-mark"><span class="logo-text">NagarikSwasthya</span></a>
+    <div class="nav-links">
+      <a href="../index.html" class="nav-link">Home</a>
+      <a href="file.html" class="nav-link">File Grievance</a>
+      <a href="track.html" class="nav-link">Track</a>
+      <a href="facilities.html" class="nav-link">Find Facility</a>
+      <a href="schemes.html" class="nav-link">Schemes</a>
+    </div>
+    <div class="nav-actions">
+      <a href="file.html" class="btn-primary-sm">File Grievance</a>
+    </div>
+    <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="../index.html">Home</a><a href="file.html">File Grievance</a>
+  <a href="track.html">Track</a><a href="facilities.html">Find Facility</a>
+</div>
+
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <h2>Welcome back</h2>
+    <p class="auth-sub">Login to manage your complaints, track status, and get personalised scheme recommendations.</p>
+
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="loginTab" onclick="switchTab('login')">Login</div>
+      <div class="auth-tab" id="registerTab" onclick="switchTab('register')">Register</div>
+    </div>
+
+    <div id="authAlert"></div>
+
+    <!-- LOGIN FORM -->
+    <div id="loginForm" class="auth-form">
+      <div class="form-group">
+        <label>Mobile number</label>
+        <input type="tel" id="lMobile" placeholder="10-digit mobile number" maxlength="10">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="lPassword" placeholder="Your password">
+      </div>
+      <button class="otp-btn" onclick="doLogin()">Login →</button>
+      <div class="divider"><span>or</span></div>
+      <p style="font-size:13px;color:var(--text4);text-align:center">Demo: mobile <strong>9876543210</strong> / password <strong>test123</strong></p>
+      <p style="font-size:13px;color:var(--text4);text-align:center;margin-top:4px">
+        Don't have an account? <a href="#" onclick="switchTab('register')" style="color:var(--blue);font-weight:600">Register now</a>
+      </p>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="registerForm" class="auth-form" style="display:none">
+      <div class="form-group">
+        <label>Full name <span class="required">*</span></label>
+        <input type="text" id="rName" placeholder="Your full name">
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Mobile number <span class="required">*</span></label>
+          <input type="tel" id="rMobile" placeholder="10-digit number" maxlength="10">
+        </div>
+        <div class="form-group">
+          <label>District</label>
+          <select id="rDistrict">
+            <option value="">Select</option>
+            <option>Pune</option><option>Mumbai</option><option>Nashik</option>
+            <option>Nagpur</option><option>Aurangabad</option><option>Kolhapur</option>
+            <option>Solapur</option><option>Thane</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Email (optional)</label>
+        <input type="email" id="rEmail" placeholder="your@email.com">
+      </div>
+      <div class="form-group">
+        <label>Password <span class="required">*</span></label>
+        <input type="password" id="rPassword" placeholder="Create a password (min 6 chars)">
+      </div>
+      <button class="otp-btn" onclick="doRegister()">Create account →</button>
+      <p style="font-size:13px;color:var(--text4);text-align:center;margin-top:8px">
+        Already have an account? <a href="#" onclick="switchTab('login')" style="color:var(--blue);font-weight:600">Login</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<script src="../js/db.js"></script>
+<script>
+document.getElementById('hamburger').addEventListener('click',()=>document.getElementById('mobileMenu').classList.toggle('open'));
+
+if (DB.getSession()) window.location.href = '../index.html';
+
+function switchTab(tab) {
+  document.getElementById('loginTab').classList.toggle('active', tab === 'login');
+  document.getElementById('registerTab').classList.toggle('active', tab === 'register');
+  document.getElementById('loginForm').style.display = tab === 'login' ? 'flex' : 'none';
+  document.getElementById('registerForm').style.display = tab === 'register' ? 'flex' : 'none';
+  document.getElementById('authAlert').innerHTML = '';
+}
+
+function showAlert(msg, type='error') {
+  document.getElementById('authAlert').innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+}
+
+async function doLogin() {
+  const mobile = document.getElementById('lMobile').value.trim();
+  const password = document.getElementById('lPassword').value;
+  if (!mobile || !password) { showAlert('Please enter mobile and password.'); return; }
+  const result = await DB.loginUser(mobile, password);
+  if (result.error) { showAlert(result.error); return; }
+  DB.setSession(result.user);
+  showAlert('Login successful! Redirecting...', 'success');
+  setTimeout(() => window.location.href = '../index.html', 800);
+}
+
+async function doRegister() {
+  const name = document.getElementById('rName').value.trim();
+  const mobile = document.getElementById('rMobile').value.trim();
+  const password = document.getElementById('rPassword').value;
+  const email = document.getElementById('rEmail').value.trim();
+  const district = document.getElementById('rDistrict').value;
+  if (!name) { showAlert('Please enter your name.'); return; }
+  if (!mobile || !/^\d{10}$/.test(mobile)) { showAlert('Enter a valid 10-digit mobile number.'); return; }
+  if (!password || password.length < 6) { showAlert('Password must be at least 6 characters.'); return; }
+  const result = await DB.registerUser({ name, mobile, password, email, district });
+  if (result.error) { showAlert(result.error); return; }
+  DB.setSession(result.user);
+  showAlert('Account created! Redirecting...', 'success');
+  setTimeout(() => window.location.href = '../index.html', 800);
+}
+
+[document.getElementById('lPassword'), document.getElementById('lMobile')].forEach(el => {
+  el && el.addEventListener('keypress', e => { if (e.key === 'Enter') doLogin(); });
+});
+</script>
+<script src="../js/translate.js"></script></body>
+</html>
+

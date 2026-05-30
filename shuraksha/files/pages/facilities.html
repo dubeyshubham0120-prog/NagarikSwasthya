@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Find Facilities — NagarikSwasthya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../images/logo.png" alt="Logo" class="logo-mark"><span class="logo-text">NagarikSwasthya</span></a>
+    <div class="nav-links">
+      <a href="../index.html" class="nav-link">Home</a>
+      <a href="file.html" class="nav-link">File Grievance</a>
+      <a href="track.html" class="nav-link">Track</a>
+      <a href="facilities.html" class="nav-link active">Find Facility</a>
+      <a href="schemes.html" class="nav-link">Schemes</a>
+    </div>
+    <div class="nav-actions">
+      <a href="login.html" class="btn-ghost">Login</a>
+      <a href="file.html" class="btn-primary-sm">File Grievance</a>
+    </div>
+    <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="../index.html">Home</a><a href="file.html">File Grievance</a>
+  <a href="track.html">Track</a><a href="facilities.html">Find Facility</a><a href="schemes.html">Schemes</a>
+</div>
+
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <h1>Find Nearby Facilities</h1>
+    <p>Locate government hospitals, PHCs, blood banks, ambulance services, and Jan Aushadhi stores near you.</p>
+  </div>
+</div>
+
+<div class="page-content">
+  <div class="search-bar-row">
+    <input type="text" id="searchInput" placeholder="Search by name, district, or type..." oninput="renderFacilities()">
+    <select id="districtFilter" onchange="renderFacilities()" style="padding:11px 14px;border:1.5px solid var(--border2);border-radius:var(--radius);font-size:14px;font-family:'DM Sans',sans-serif;background:white;color:var(--text);outline:none;cursor:pointer">
+      <option value="">All districts</option>
+      <option>Pune</option><option>Nashik</option><option>Nagpur</option><option>Aurangabad</option>
+    </select>
+  </div>
+  <div class="filter-tabs" id="filterTabs">
+    <button class="filter-tab active" data-type="all" onclick="setTypeFilter('all',this)">All</button>
+    <button class="filter-tab" data-type="Government Hospital" onclick="setTypeFilter('Government Hospital',this)">Hospitals</button>
+    <button class="filter-tab" data-type="Primary Health Centre" onclick="setTypeFilter('Primary Health Centre',this)">PHC</button>
+    <button class="filter-tab" data-type="Blood Bank" onclick="setTypeFilter('Blood Bank',this)">Blood Bank</button>
+    <button class="filter-tab" data-type="Ambulance" onclick="setTypeFilter('Ambulance',this)">Ambulance</button>
+    <button class="filter-tab" data-type="Medicine Store" onclick="setTypeFilter('Medicine Store',this)">Medicine Store</button>
+  </div>
+  <div id="resultsCount" style="font-size:13px;color:var(--text4);margin-bottom:16px"></div>
+  <div class="facilities-grid" id="facilitiesGrid"></div>
+</div>
+
+<script src="../js/db.js"></script>
+<script>
+document.getElementById('hamburger').addEventListener('click',()=>document.getElementById('mobileMenu').classList.toggle('open'));
+let activeType = 'all';
+
+function setTypeFilter(type, btn) {
+  activeType = type;
+  document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderFacilities();
+}
+
+function renderFacilities() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const dist = document.getElementById('districtFilter').value;
+  let list = FACILITIES.filter(f => {
+    const matchQ = !q || f.name.toLowerCase().includes(q) || f.type.toLowerCase().includes(q) || f.district.toLowerCase().includes(q) || f.services.toLowerCase().includes(q);
+    const matchDist = !dist || f.district === dist;
+    const matchType = activeType === 'all' || f.type === activeType;
+    return matchQ && matchDist && matchType;
+  });
+  document.getElementById('resultsCount').textContent = `${list.length} facilit${list.length === 1 ? 'y' : 'ies'} found`;
+  const grid = document.getElementById('facilitiesGrid');
+  if (!list.length) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><p>No facilities match your search. Try a different area or type.</p></div>'; return; }
+  grid.innerHTML = list.map(f => `
+    <div class="facility-card">
+      <div class="fac-top">
+        <div>
+          <div class="fac-name">${f.name}</div>
+          <div class="fac-type">${f.type} · ${f.district}</div>
+        </div>
+        <span class="open-badge ${f.status}">${f.status === 'open' ? 'Open' : 'Closed'}</span>
+      </div>
+      <div class="fac-details">
+        <div>⏰ ${f.hours}</div>
+        ${f.beds !== '-' ? `<div>🛏 ${f.beds}</div>` : ''}
+        <div>🩺 ${f.services}</div>
+      </div>
+      <div class="fac-dist">📍 ${f.distance}</div>
+      <div class="fac-actions">
+        <button class="btn-fac primary" onclick="alert('Directions feature coming soon! Address: ${f.name}, ${f.district}')">Get directions</button>
+        <button class="btn-fac" onclick="window.location='file.html'">Report issue</button>
+      </div>
+    </div>`).join('');
+}
+renderFacilities();
+</script>
+<script src="../js/translate.js"></script></body>
+</html>
+

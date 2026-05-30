@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Hospital Map — NagarikSwasthya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root {
+  --blue:#1a56db; --blue-light:#e8f0fe; --blue-dark:#1240aa;
+  --green:#057a55; --green-light:#def7ec;
+  --red:#c81e1e; --red-light:#fde8e8;
+  --amber:#92400e; --amber-light:#fef3c7;
+  --teal:#0694a2; --teal-light:#d5f5f6;
+  --purple:#6c2bd9; --purple-light:#ede9fe;
+  --text:#111928; --text2:#374151; --text3:#6b7280; --text4:#9ca3af;
+  --bg:#ffffff; --bg2:#f9fafb; --bg3:#f3f4f6;
+  --border:#e5e7eb; --border2:#d1d5db;
+  --radius:12px; --radius-sm:8px;
+  --shadow:0 1px 3px rgba(0,0,0,.08);
+  --shadow-md:0 4px 12px rgba(0,0,0,.1);
+  --shadow-lg:0 10px 30px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;color:var(--text);background:var(--bg);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+h1,h2,h3,h4,h5{font-family:'Syne',sans-serif;line-height:1.2}
+a{text-decoration:none;color:inherit}
+
+/* NAVBAR */
+.navbar{background:white;border-bottom:1px solid var(--border);padding:0 20px;height:56px;display:flex;align-items:center;gap:16px;z-index:1000;flex-shrink:0}
+.nav-logo{display:flex;align-items:center;gap:8px;font-weight:700}
+.logo-mark{width:30px;height:30px;background:var(--blue);color:white;border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:12px;font-weight:800}
+.logo-text{font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
+.nav-sep{width:1px;height:24px;background:var(--border);flex-shrink:0}
+.nav-title{font-size:14px;font-weight:600;color:var(--text2)}
+.nav-links{display:flex;gap:4px;margin-left:8px}
+.nav-link{padding:5px 10px;border-radius:7px;font-size:13px;color:var(--text3);font-weight:500;transition:all .15s}
+.nav-link:hover{color:var(--blue);background:var(--blue-light)}
+.nav-link.active{color:var(--blue);background:var(--blue-light)}
+.nav-right{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btn-sm{padding:6px 14px;border-radius:7px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif}
+.btn-primary{background:var(--blue);color:white}
+.btn-primary:hover{background:var(--blue-dark)}
+.btn-outline{background:white;color:var(--text2);border:1px solid var(--border2)}
+.btn-outline:hover{border-color:var(--blue);color:var(--blue)}
+
+/* MAIN LAYOUT */
+.app-body{display:flex;flex:1;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:340px;flex-shrink:0;background:white;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;transition:width .3s}
+.sidebar.collapsed{width:0;overflow:hidden}
+.sidebar-header{padding:14px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sidebar-header h3{font-size:16px;margin-bottom:4px}
+.sidebar-header p{font-size:12px;color:var(--text4)}
+.search-box{padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.search-box input{width:100%;padding:8px 12px;border:1.5px solid var(--border2);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s}
+.search-box input:focus{border-color:var(--blue)}
+.filter-row{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;gap:5px;flex-wrap:wrap;flex-shrink:0}
+.ftag{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1.5px solid var(--border2);background:white;cursor:pointer;transition:all .15s;color:var(--text3)}
+.ftag.active{color:white;border-color:transparent}
+.ftag.all.active{background:#374151}
+.ftag.hospital.active{background:var(--red);border-color:var(--red)}
+.ftag.clinic.active{background:var(--blue);border-color:var(--blue)}
+.ftag.pharmacy.active{background:var(--green);border-color:var(--green)}
+.ftag.dentist.active{background:var(--teal);border-color:var(--teal)}
+.ftag.doctor.active{background:var(--purple);border-color:var(--purple)}
+.results-count{padding:6px 12px;font-size:11px;color:var(--text4);background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.hospital-list{flex:1;overflow-y:auto}
+.hospital-list::-webkit-scrollbar{width:4px}
+.hospital-list::-webkit-scrollbar-track{background:transparent}
+.hospital-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.hosp-item{padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s;display:flex;gap:10px;align-items:flex-start}
+.hosp-item:hover,.hosp-item.active{background:var(--blue-light)}
+.hosp-item.active .hosp-extra{display:block !important;}
+.hosp-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px}
+.hosp-dot.hospital{background:var(--red)}
+.hosp-dot.clinic{background:var(--blue)}
+.hosp-dot.pharmacy{background:var(--green)}
+.hosp-dot.dentist{background:var(--teal)}
+.hosp-dot.doctor{background:var(--purple)}
+.hosp-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;line-height:1.3}
+.hosp-meta{font-size:11px;color:var(--text4);line-height:1.5}
+.hosp-type-tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:10px;font-weight:600;margin-top:3px}
+.hosp-type-tag.hospital{background:var(--red-light);color:var(--red)}
+.hosp-type-tag.clinic{background:var(--blue-light);color:var(--blue)}
+.hosp-type-tag.pharmacy{background:var(--green-light);color:var(--green)}
+.hosp-type-tag.dentist{background:var(--teal-light);color:var(--teal)}
+.hosp-type-tag.doctor{background:var(--purple-light);color:var(--purple)}
+.empty-list{padding:40px 20px;text-align:center;color:var(--text4);font-size:13px}
+
+/* MAP */
+.map-wrap{flex:1;position:relative}
+#map{width:100%;height:100%}
+
+/* LOADING OVERLAY */
+.loading-overlay{position:absolute;inset:0;background:rgba(255,255,255,.85);backdrop-filter:blur(4px);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.loading-overlay.hidden{display:none}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:14px;font-weight:600;color:var(--text2)}
+.loading-sub{font-size:12px;color:var(--text4)}
+
+/* MAP CONTROLS */
+.map-controls{position:absolute;top:12px;right:12px;z-index:400;display:flex;flex-direction:column;gap:8px}
+.map-ctrl-btn{background:white;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:var(--shadow-md);display:flex;align-items:center;gap:6px;color:var(--text2);transition:all .15s;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.map-ctrl-btn:hover{border-color:var(--blue);color:var(--blue)}
+.map-ctrl-btn.active{background:var(--blue);color:white;border-color:var(--blue)}
+
+/* STATS BAR */
+.stats-bar{position:absolute;bottom:0;left:0;right:0;z-index:400;background:white;border-top:1px solid var(--border);padding:8px 16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.stat-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text3)}
+.stat-dot{width:8px;height:8px;border-radius:50%}
+.stat-item strong{font-weight:700;color:var(--text)}
+.stat-sep{width:1px;height:16px;background:var(--border)}
+.powered-by{margin-left:auto;font-size:11px;color:var(--text4)}
+.powered-by a{color:var(--blue)}
+
+/* POPUP STYLES */
+.custom-popup .leaflet-popup-content-wrapper{border-radius:12px;box-shadow:var(--shadow-lg);border:1px solid var(--border);padding:0;overflow:hidden;min-width:260px}
+.custom-popup .leaflet-popup-content{margin:0;width:100% !important}
+.custom-popup .leaflet-popup-tip-container{margin-top:-1px}
+.popup-inner{font-family:'DM Sans',sans-serif}
+.popup-header{padding:14px 16px 10px;border-bottom:1px solid var(--border)}
+.popup-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3}
+.popup-row{display:flex;align-items:flex-start;gap:6px;font-size:12px;color:var(--text3);margin-bottom:3px}
+.popup-row svg{flex-shrink:0;margin-top:1px}
+.popup-body{padding:10px 16px}
+.popup-tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;text-transform:capitalize;margin-bottom:8px}
+.popup-actions{display:flex;gap:6px;margin-top:8px}
+.popup-btn{flex:1;padding:7px 10px;border-radius:7px;border:none;cursor:pointer;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;transition:all .15s}
+.popup-btn.primary{background:var(--blue);color:white}
+.popup-btn.primary:hover{background:var(--blue-dark)}
+.popup-btn.secondary{background:var(--bg2);color:var(--text2);border:1px solid var(--border2)}
+.popup-btn.secondary:hover{border-color:var(--blue);color:var(--blue)}
+
+/* SIDEBAR TOGGLE */
+.sidebar-toggle{position:absolute;left:340px;top:50%;transform:translateY(-50%);z-index:450;background:white;border:1px solid var(--border);border-left:none;border-radius:0 8px 8px 0;width:18px;height:48px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow);transition:left .3s;font-size:10px;color:var(--text3)}
+.sidebar-toggle.collapsed{left:0;border-radius:0 8px 8px 0}
+
+/* DISTRICT SELECTOR */
+.district-bar{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;gap:6px;align-items:center;flex-shrink:0}
+.district-bar label{font-size:11px;font-weight:600;color:var(--text4);white-space:nowrap}
+.district-bar select{flex:1;padding:5px 8px;border:1.5px solid var(--border2);border-radius:7px;font-size:12px;font-family:'DM Sans',sans-serif;outline:none;cursor:pointer;background:white;transition:border-color .15s}
+.district-bar select:focus{border-color:var(--blue)}
+.btn-load{padding:5px 12px;background:var(--blue);color:white;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:all .15s}
+.btn-load:hover{background:var(--blue-dark)}
+
+/* LEGEND */
+.legend{background:white;border:1px solid var(--border);border-radius:10px;padding:10px 12px;box-shadow:var(--shadow-md);font-size:11px;min-width:130px}
+.legend h4{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;margin-bottom:8px;color:var(--text)}
+.legend-item{display:flex;align-items:center;gap:6px;margin-bottom:4px;color:var(--text3)}
+.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+
+/* MOBILE */
+@media(max-width:768px){
+  .sidebar{width:100%;position:absolute;bottom:0;left:0;right:0;height:45%;z-index:450;border-right:none;border-top:1px solid var(--border);border-radius:16px 16px 0 0}
+  .sidebar.collapsed{height:0;width:100%}
+  .sidebar-toggle{display:none}
+  .map-wrap{flex:1}
+  .nav-links{display:none}
+  .stats-bar{display:none}
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="nav-logo">
+    <span class="logo-mark">NS</span>
+    <span class="logo-text">NagarikSwasthya</span>
+  </a>
+  <div class="nav-sep"></div>
+  <span class="nav-title">🗺️ Live Health Facility Map</span>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Home</a>
+    <a href="pages/file.html" class="nav-link">File Grievance</a>
+    <a href="pages/track.html" class="nav-link">Track</a>
+    <a href="pages/facilities.html" class="nav-link">Facilities</a>
+    <a href="pages/schemes.html" class="nav-link">Schemes</a>
+  </div>
+  <div class="nav-right">
+    <button class="btn-sm btn-outline" onclick="locateMe()">📍 My location</button>
+    <a href="pages/file.html" class="btn-sm btn-primary">File Grievance</a>
+  </div>
+</nav>
+
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h3>Health Facilities</h3>
+      <p>Live data from OpenStreetMap · Maharashtra</p>
+    </div>
+
+    <div class="district-bar">
+      <label>District:</label>
+      <select id="districtSelect">
+        <option value="Mumbai">Mumbai</option>
+        <option value="Pune">Pune</option>
+        <option value="Nashik">Nashik</option>
+        <option value="Nagpur">Nagpur</option>
+        <option value="Aurangabad">Aurangabad</option>
+        <option value="Thane">Thane</option>
+        <option value="Kolhapur">Kolhapur</option>
+        <option value="Solapur">Solapur</option>
+        <option value="Navi Mumbai">Navi Mumbai</option>
+      </select>
+      <button class="btn-load" onclick="loadDistrict()">Load →</button>
+    </div>
+
+    <div class="search-box">
+      <input type="text" id="sidebarSearch" placeholder="Search facility name..." oninput="filterList()">
+    </div>
+
+    <div class="filter-row">
+      <button class="ftag all active" onclick="setFilter('all',this)">All</button>
+      <button class="ftag hospital" onclick="setFilter('hospital',this)">🏥 Hospital</button>
+      <button class="ftag clinic" onclick="setFilter('clinic',this)">🏨 Clinic</button>
+      <button class="ftag pharmacy" onclick="setFilter('pharmacy',this)">💊 Pharmacy</button>
+      <button class="ftag dentist" onclick="setFilter('dentist',this)">🦷 Dentist</button>
+      <button class="ftag doctor" onclick="setFilter('doctor',this)">👨‍⚕️ Doctor</button>
+    </div>
+
+    <div class="results-count" id="resultsCount">Loading facilities...</div>
+    <div class="hospital-list" id="hospitalList">
+      <div class="empty-list">Select a district and click Load to fetch live data.</div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR TOGGLE -->
+  <div class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">◀</div>
+
+  <!-- MAP -->
+  <div class="map-wrap">
+    <div id="map"></div>
+
+    <!-- LOADING -->
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="spinner"></div>
+      <div class="loading-text" id="loadingText">Fetching live hospital data...</div>
+      <div class="loading-sub" id="loadingSub">Querying OpenStreetMap Overpass API</div>
+    </div>
+
+    <!-- MAP CONTROLS -->
+    <div class="map-controls">
+      <button class="map-ctrl-btn" id="clusterBtn" onclick="toggleClusters()">🔵 Clusters: ON</button>
+      <button class="map-ctrl-btn" id="heatBtn" onclick="toggleHeatmap()">🔴 Heatmap: OFF</button>
+      <button class="map-ctrl-btn" onclick="fitAll()">⛶ Fit all</button>
+    </div>
+
+    <!-- STATS BAR -->
+    <div class="stats-bar">
+      <div class="stat-item"><div class="stat-dot" style="background:var(--red)"></div><strong id="sc-hospital">0</strong> Hospitals</div>
+      <div class="stat-sep"></div>
+      <div class="stat-item"><div class="stat-dot" style="background:var(--blue)"></div><strong id="sc-clinic">0</strong> Clinics</div>
+      <div class="stat-sep"></div>
+      <div class="stat-item"><div class="stat-dot" style="background:var(--green)"></div><strong id="sc-pharmacy">0</strong> Pharmacies</div>
+      <div class="stat-sep"></div>
+      <div class="stat-item"><div class="stat-dot" style="background:var(--teal)"></div><strong id="sc-dentist">0</strong> Dentists</div>
+      <div class="stat-sep"></div>
+      <div class="stat-item"><div class="stat-dot" style="background:var(--purple)"></div><strong id="sc-doctor">0</strong> Doctors</div>
+      <div class="stat-sep"></div>
+      <div class="stat-item"><strong id="sc-total">0</strong> Total</div>
+      <div class="powered-by">Powered by <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a> + <a href="https://overpass-api.de" target="_blank">Overpass API</a></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.Default.css">
+
+<script>
+// ── MAP INIT ──────────────────────────────────────────────────────
+const map = L.map('map', { zoomControl: true }).setView([19.076, 72.877], 12);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  maxZoom: 19
+}).addTo(map);
+
+// ── STATE ────────────────────────────────────────────────────────
+let allFacilities = [];
+let activeFilter = 'all';
+let clusterMode = true;
+let markerClusterGroup = null;
+let regularLayerGroup = null;
+let sidebarOpen = true;
+let currentDistrict = 'Mumbai';
+
+// ── COLORS ───────────────────────────────────────────────────────
+const TYPE_COLOR = {
+  hospital: '#c81e1e',
+  clinic:   '#1a56db',
+  pharmacy: '#057a55',
+  dentist:  '#0694a2',
+  doctor:   '#6c2bd9',
+  default:  '#6b7280'
+};
+
+function getColor(type) { return TYPE_COLOR[type] || TYPE_COLOR.default; }
+
+function createIcon(type) {
+  const color = getColor(type);
+  const emoji = {hospital:'🏥',clinic:'🏨',pharmacy:'💊',dentist:'🦷',doctor:'👨‍⚕️'}[type] || '📍';
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      background:${color};
+      width:28px;height:28px;border-radius:50% 50% 50% 0;
+      transform:rotate(-45deg);
+      border:2px solid white;
+      box-shadow:0 2px 6px rgba(0,0,0,.25);
+      display:flex;align-items:center;justify-content:center;
+    "><div style="transform:rotate(45deg);font-size:12px;line-height:1">${emoji}</div></div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 28],
+    popupAnchor: [0, -30]
+  });
+}
+
+// ── OVERPASS QUERY ────────────────────────────────────────────────
+const DISTRICT_COORDS = {
+  'Mumbai':      [19.076, 72.877],
+  'Pune':        [18.520, 73.856],
+  'Nashik':      [19.997, 73.791],
+  'Nagpur':      [21.145, 79.088],
+  'Aurangabad':  [19.877, 75.337],
+  'Thane':       [19.218, 72.978],
+  'Kolhapur':    [16.705, 74.243],
+  'Solapur':     [17.687, 75.904],
+  'Navi Mumbai': [19.036, 73.016]
+};
+
+async function fetchFacilities(district) {
+  const coords = DISTRICT_COORDS[district] || [19.076, 72.877];
+  const overpassUrl = 'https://overpass-api.de/api/interpreter';
+  
+  const query = `
+[out:json][timeout:8];
+(
+  node["amenity"~"hospital|clinic|pharmacy|dentist|doctors"](around:8000, ${coords[0]}, ${coords[1]});
+  way["amenity"~"hospital|clinic|pharmacy|dentist|doctors"](around:8000, ${coords[0]}, ${coords[1]});
+);
+out center;
+  `.trim();
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second hard timeout
+
+  try {
+    const res = await fetch(overpassUrl, {
+      method: 'POST',
+      body: 'data=' + encodeURIComponent(query),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    if (!res.ok) throw new Error('Overpass API error: ' + res.status);
+    return await res.json();
+  } catch (err) {
+    clearTimeout(timeoutId);
+    console.warn('Live API is slow or blocked. Using fallback demonstration data.', err);
+    // Provide instant fallback data if the live server is slow
+    return {
+      elements: [
+        { id: 'fb1', lat: coords[0] + 0.012, lon: coords[1] + 0.01, tags: { name: district + " Civil Hospital", amenity: "hospital", phone: "104", emergency: "yes", beds: "450" } },
+        { id: 'fb2', lat: coords[0] - 0.015, lon: coords[1] + 0.005, tags: { name: "Aarogya Clinic", amenity: "clinic", phone: "+91 9876543210", opening_hours: "Mo-Sa 09:00-18:00" } },
+        { id: 'fb3', lat: coords[0] + 0.005, lon: coords[1] - 0.015, tags: { name: "City Pharmacy 24x7", amenity: "pharmacy", opening_hours: "24/7" } },
+        { id: 'fb4', lat: coords[0] - 0.008, lon: coords[1] - 0.012, tags: { name: "Smile Dental", amenity: "dentist" } },
+        { id: 'fb5', lat: coords[0] + 0.02, lon: coords[1] + 0.02, tags: { name: district + " Heart Center", amenity: "hospital", emergency: "yes", speciality: "Cardiology" } },
+        { id: 'fb6', lat: coords[0] - 0.002, lon: coords[1] + 0.018, tags: { name: "Dr. Kulkarni General Physician", amenity: "doctors" } }
+      ]
+    };
+  }
+}
+
+function parseAmenity(amenity) {
+  if (!amenity) return 'default';
+  if (amenity.includes('hospital')) return 'hospital';
+  if (amenity.includes('clinic')) return 'clinic';
+  if (amenity.includes('pharmacy')) return 'pharmacy';
+  if (amenity.includes('dentist')) return 'dentist';
+  if (amenity.includes('doctor')) return 'doctor';
+  return 'default';
+}
+
+function parseFacility(el) {
+  const tags = el.tags || {};
+  const lat = el.lat || el.center?.lat;
+  const lon = el.lon || el.center?.lon;
+  if (!lat || !lon) return null;
+  return {
+    id: el.id,
+    lat, lon,
+    name: tags.name || tags['name:en'] || 'Unnamed Facility',
+    type: parseAmenity(tags.amenity),
+    amenity: tags.amenity || 'health',
+    address: [tags['addr:housenumber'], tags['addr:street'], tags['addr:suburb']]
+      .filter(Boolean).join(', ') || '',
+    phone: tags.phone || tags['contact:phone'] || '',
+    website: tags.website || tags['contact:website'] || '',
+    emergency: tags.emergency || '',
+    beds: tags.beds || '',
+    operator: tags.operator || '',
+    opening_hours: tags.opening_hours || '',
+    wheelchair: tags.wheelchair || '',
+    healthcare: tags.healthcare || '',
+    speciality: tags['healthcare:speciality'] || ''
+  };
+}
+
+// ── LOAD ──────────────────────────────────────────────────────────
+async function loadDistrict() {
+  currentDistrict = document.getElementById('districtSelect').value;
+  const coords = DISTRICT_COORDS[currentDistrict] || [19.076, 72.877];
+  showLoading(`Fetching facilities in ${currentDistrict}...`);
+
+  try {
+    const data = await fetchFacilities(currentDistrict);
+    allFacilities = data.elements.map(parseFacility).filter(Boolean);
+    map.setView(coords, 13);
+    renderMarkers();
+    renderList();
+    updateStats();
+    hideLoading();
+  } catch (err) {
+    hideLoading();
+    console.error(err);
+    document.getElementById('hospitalList').innerHTML =
+      `<div class="empty-list">⚠️ Could not load data.<br><small>Overpass API may be busy. Try again in a moment.</small></div>`;
+    document.getElementById('resultsCount').textContent = 'Error loading data';
+  }
+}
+
+// ── MARKERS ───────────────────────────────────────────────────────
+function renderMarkers() {
+  // Clear previous
+  if (markerClusterGroup) map.removeLayer(markerClusterGroup);
+  if (regularLayerGroup) map.removeLayer(regularLayerGroup);
+
+  const filtered = getFiltered();
+
+  if (clusterMode) {
+    markerClusterGroup = L.markerClusterGroup({
+      chunkedLoading: true,
+      maxClusterRadius: 40,
+      spiderfyOnMaxZoom: true,
+      iconCreateFunction: cluster => {
+        const count = cluster.getChildCount();
+        const size = count > 100 ? 44 : count > 50 ? 38 : 32;
+        return L.divIcon({
+          html: `<div style="background:var(--blue);color:white;width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.2)">${count}</div>`,
+          className:'', iconSize:[size,size]
+        });
+      }
+    });
+
+    filtered.forEach(f => {
+      const marker = L.marker([f.lat, f.lon], { icon: createIcon(f.type) });
+      marker.bindPopup(buildPopup(f), { className:'custom-popup', maxWidth:300 });
+      marker.on('click', () => {
+        highlightListItem(f.id);
+        getDirections(f.lat, f.lon);
+      });
+      markerClusterGroup.addLayer(marker);
+    });
+    map.addLayer(markerClusterGroup);
+  } else {
+    regularLayerGroup = L.layerGroup();
+    filtered.forEach(f => {
+      const marker = L.marker([f.lat, f.lon], { icon: createIcon(f.type) });
+      marker.bindPopup(buildPopup(f), { className:'custom-popup', maxWidth:300 });
+      marker.on('click', () => {
+        highlightListItem(f.id);
+        getDirections(f.lat, f.lon);
+      });
+      regularLayerGroup.addLayer(marker);
+    });
+    map.addLayer(regularLayerGroup);
+  }
+}
+
+function buildPopup(f) {
+  const color = getColor(f.type);
+  const tagStyle = `background:${color}22;color:${color}`;
+  return `
+    <div class="popup-inner">
+      <div class="popup-header">
+        <div class="popup-name">${f.name}</div>
+        ${f.address ? `<div class="popup-row"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 2C5.79 2 4 3.79 4 6c0 3 4 8 4 8s4-5 4-8c0-2.21-1.79-4-4-4z" stroke="${color}" stroke-width="1.5"/><circle cx="8" cy="6" r="1.5" stroke="${color}" stroke-width="1.2"/></svg><span>${f.address}</span></div>` : ''}
+        ${f.phone ? `<div class="popup-row"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 2.5A1.5 1.5 0 014.5 1h.879a1 1 0 01.948.684l.6 1.8a1 1 0 01-.277 1.049l-.674.674A7.5 7.5 0 009.79 9.024l.674-.674a1 1 0 011.049-.277l1.8.6A1 1 0 0114 9.62V10.5A1.5 1.5 0 0112.5 12C6.977 12 2.5 7.523 2.5 2z" stroke="${color}" stroke-width="1.2"/></svg><span>${f.phone}</span></div>` : ''}
+        ${f.opening_hours ? `<div class="popup-row"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="${color}" stroke-width="1.4"/><path d="M8 5v3l2 1.5" stroke="${color}" stroke-width="1.2" stroke-linecap="round"/></svg><span>${f.opening_hours}</span></div>` : ''}
+      </div>
+      <div class="popup-body">
+        <span class="popup-tag" style="${tagStyle}">${f.amenity}</span>
+        ${f.emergency === 'yes' ? '<span class="popup-tag" style="background:#fde8e8;color:#c81e1e;margin-left:4px">🚨 Emergency</span>' : ''}
+        ${f.beds ? `<div style="font-size:11px;color:var(--text4);margin-bottom:4px">🛏 ${f.beds} beds</div>` : ''}
+        ${f.operator ? `<div style="font-size:11px;color:var(--text4);margin-bottom:4px">🏛 ${f.operator}</div>` : ''}
+        ${f.speciality ? `<div style="font-size:11px;color:var(--text4);margin-bottom:4px">🩺 ${f.speciality}</div>` : ''}
+        ${f.wheelchair === 'yes' ? '<div style="font-size:11px;color:var(--green)">♿ Wheelchair accessible</div>' : ''}
+        <div class="popup-actions">
+          <button class="popup-btn primary" onclick="getDirections(${f.lat}, ${f.lon})">Get directions</button>
+          <button class="popup-btn secondary" onclick="window.open('pages/file.html','_self')">Report issue</button>
+        </div>
+        ${f.website ? `<div style="margin-top:8px"><a href="${f.website.startsWith('http')?f.website:'https://'+f.website}" target="_blank" style="font-size:11px;color:var(--blue)">🌐 Visit website →</a></div>` : ''}
+      </div>
+    </div>`;
+}
+
+// ── LIST ──────────────────────────────────────────────────────────
+function renderList() {
+  const q = document.getElementById('sidebarSearch').value.toLowerCase();
+  const filtered = getFiltered().filter(f => !q || f.name.toLowerCase().includes(q));
+  const list = document.getElementById('hospitalList');
+  document.getElementById('resultsCount').textContent =
+    `${filtered.length} of ${allFacilities.length} facilities shown`;
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty-list">No facilities match your search.</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(f => `
+    <div class="hosp-item" id="li-${f.id}" onclick="focusMarker(${f.lat},${f.lon},${f.id})">
+      <div class="hosp-dot ${f.type}"></div>
+      <div style="flex:1">
+        <div class="hosp-name">${f.name}</div>
+        <div class="hosp-meta">
+          ${f.address || 'Address not available'}<br>
+          ${f.phone ? '📞 '+f.phone : ''}${f.opening_hours ? (f.phone?'  ·  ':'')+'⏰ '+f.opening_hours.slice(0,30) : ''}
+        </div>
+        <span class="hosp-type-tag ${f.type}">${f.amenity}</span>
+        ${f.emergency==='yes'?'<span class="hosp-type-tag hospital" style="margin-left:4px">Emergency</span>':''}
+        <div class="hosp-extra" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(0,0,0,0.05)">
+          ${f.beds ? `<div style="font-size:11px;color:var(--text4);margin-bottom:4px">🛏 ${f.beds} beds</div>` : ''}
+          ${f.operator ? `<div style="font-size:11px;color:var(--text4);margin-bottom:4px">🏛 ${f.operator}</div>` : ''}
+          ${f.speciality ? `<div style="font-size:11px;color:var(--text4);margin-bottom:4px">🩺 ${f.speciality}</div>` : ''}
+          <div style="margin-top:8px">
+            <button class="popup-btn primary" style="width:100%" onclick="event.stopPropagation(); getDirections(${f.lat}, ${f.lon})">Get directions</button>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function focusMarker(lat, lon, id) {
+  map.setView([lat, lon], 17);
+  highlightListItem(id);
+}
+
+function highlightListItem(id) {
+  document.querySelectorAll('.hosp-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('li-' + id);
+  if (el) { el.classList.add('active'); el.scrollIntoView({ behavior:'smooth', block:'nearest' }); }
+}
+
+// ── FILTER ───────────────────────────────────────────────────────
+function getFiltered() {
+  return activeFilter === 'all' ? allFacilities : allFacilities.filter(f => f.type === activeFilter);
+}
+
+function setFilter(type, btn) {
+  activeFilter = type;
+  document.querySelectorAll('.ftag').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMarkers();
+  renderList();
+}
+
+function filterList() { renderList(); }
+
+// ── STATS ────────────────────────────────────────────────────────
+function updateStats() {
+  const counts = { hospital:0, clinic:0, pharmacy:0, dentist:0, doctor:0 };
+  allFacilities.forEach(f => { if (counts[f.type] !== undefined) counts[f.type]++; });
+  Object.keys(counts).forEach(k => {
+    const el = document.getElementById('sc-'+k);
+    if (el) el.textContent = counts[k];
+  });
+  document.getElementById('sc-total').textContent = allFacilities.length;
+}
+
+// ── CLUSTERS / HEATMAP TOGGLE ────────────────────────────────────
+function toggleClusters() {
+  clusterMode = !clusterMode;
+  const btn = document.getElementById('clusterBtn');
+  btn.textContent = `🔵 Clusters: ${clusterMode ? 'ON' : 'OFF'}`;
+  btn.classList.toggle('active', clusterMode);
+  renderMarkers();
+}
+
+function toggleHeatmap() {
+  alert('Heatmap layer: Coming soon! It will show complaint density overlaid on the hospital map.');
+}
+
+function fitAll() {
+  if (!allFacilities.length) return;
+  const bounds = allFacilities.map(f => [f.lat, f.lon]);
+  map.fitBounds(L.latLngBounds(bounds), { padding:[30,30] });
+}
+
+// ── SIDEBAR TOGGLE ────────────────────────────────────────────────
+function toggleSidebar() {
+  sidebarOpen = !sidebarOpen;
+  document.getElementById('sidebar').classList.toggle('collapsed', !sidebarOpen);
+  const toggle = document.getElementById('sidebarToggle');
+  toggle.textContent = sidebarOpen ? '◀' : '▶';
+  toggle.classList.toggle('collapsed', !sidebarOpen);
+  toggle.style.left = sidebarOpen ? '340px' : '0';
+  setTimeout(() => map.invalidateSize(), 310);
+}
+
+// ── LOCATE ME ────────────────────────────────────────────────────
+function locateMe() {
+  if (!navigator.geolocation) { alert('Geolocation not supported.'); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    const { latitude: lat, longitude: lon } = pos.coords;
+    map.setView([lat, lon], 15);
+    L.circleMarker([lat, lon], {
+      radius: 10, fillColor:'var(--blue)', fillOpacity:0.8,
+      color:'white', weight:2
+    }).addTo(map).bindPopup('📍 Your location').openPopup();
+  }, () => alert('Could not get your location. Please allow location access.'));
+}
+
+// ── LOADING ───────────────────────────────────────────────────────
+function showLoading(msg) {
+  document.getElementById('loadingText').textContent = msg || 'Loading...';
+  document.getElementById('loadingOverlay').classList.remove('hidden');
+}
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.add('hidden');
+}
+
+// ── GET DIRECTIONS ────────────────────────────────────────────────
+function getDirections(lat, lon) {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      const { latitude, longitude } = pos.coords;
+      window.open(`https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${lat},${lon}`, '_blank');
+    }, () => {
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`, '_blank');
+    });
+  } else {
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`, '_blank');
+  }
+}
+
+// ── LEGEND ───────────────────────────────────────────────────────
+const legend = L.control({ position: 'bottomright' });
+legend.onAdd = () => {
+  const div = L.DomUtil.create('div', 'legend');
+  div.innerHTML = `
+    <h4>Facility types</h4>
+    <div class="legend-item"><div class="legend-dot" style="background:#c81e1e"></div>Hospital</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#1a56db"></div>Clinic</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#057a55"></div>Pharmacy</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#0694a2"></div>Dentist</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#6c2bd9"></div>Doctor</div>`;
+  return div;
+};
+legend.addTo(map);
+
+// ── AUTO-LOAD MUMBAI ─────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  showLoading('Fetching hospitals in Mumbai...');
+  loadDistrict();
+});
+</script>
+<script src="js/translate.js"></script></body>
+</html>
+

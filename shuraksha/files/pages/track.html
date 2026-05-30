@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Track Complaint — NagarikSwasthya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../images/logo.png" alt="Logo" class="logo-mark"><span class="logo-text">NagarikSwasthya</span></a>
+    <div class="nav-links">
+      <a href="../index.html" class="nav-link">Home</a>
+      <a href="file.html" class="nav-link">File Grievance</a>
+      <a href="track.html" class="nav-link active">Track</a>
+      <a href="facilities.html" class="nav-link">Find Facility</a>
+      <a href="schemes.html" class="nav-link">Schemes</a>
+    </div>
+    <div class="nav-actions">
+      <a href="login.html" class="btn-ghost" id="navLoginBtn">Login</a>
+      <a href="file.html" class="btn-primary-sm">File Grievance</a>
+    </div>
+    <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="../index.html">Home</a>
+  <a href="file.html">File Grievance</a>
+  <a href="track.html">Track</a>
+  <a href="facilities.html">Find Facility</a>
+  <a href="schemes.html">Schemes</a>
+</div>
+
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <h1>Track Your Complaint</h1>
+    <p>Enter your grievance ID or login to view all your complaints and their current status.</p>
+  </div>
+</div>
+
+<div class="page-content">
+
+  <div class="form-card" style="margin-bottom:28px">
+    <h3>Search by grievance ID</h3>
+    <div class="search-bar-row">
+      <input type="text" id="trackInput" placeholder="Enter ID (e.g. GRV-2026-00312)" style="flex:1;padding:11px 16px;border:1.5px solid var(--border2);border-radius:var(--radius);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border2)'">
+      <button class="btn-search" onclick="trackById()">Track →</button>
+    </div>
+    <p style="font-size:13px;color:var(--text4);margin-top:8px">Try: GRV-2026-00312 or GRV-2026-00289</p>
+  </div>
+
+  <div id="trackResult"></div>
+
+  <div id="myComplaintsSection" style="display:none">
+    <div class="section-label" style="margin-bottom:8px">My complaints</div>
+    <h2 style="font-size:22px;margin-bottom:16px">Your filed complaints</h2>
+    <div class="my-complaints-list" id="myComplaintsList"></div>
+  </div>
+
+  <div id="allComplaintsSection">
+    <div class="section-label" style="margin-bottom:8px">Portal activity</div>
+    <h2 style="font-size:22px;margin-bottom:16px">All recent complaints</h2>
+    <div class="my-complaints-list" id="allComplaintsList"></div>
+  </div>
+</div>
+
+<script src="../js/db.js"></script>
+<script>
+document.getElementById('hamburger').addEventListener('click', () => {
+  document.getElementById('mobileMenu').classList.toggle('open');
+});
+
+const session = DB.getSession();
+if (session) {
+  document.getElementById('navLoginBtn').textContent = session.name.split(' ')[0];
+  document.getElementById('myComplaintsSection').style.display = 'block';
+  renderMyComplaints(session.mobile);
+}
+
+// Check URL param or sessionStorage
+const urlId = new URLSearchParams(window.location.search).get('id') || sessionStorage.getItem('lastGrievanceId');
+if (urlId) {
+  document.getElementById('trackInput').value = urlId;
+  setTimeout(trackById, 100);
+}
+
+renderAllComplaints();
+
+function statusLabel(s) { return s === 'resolved' ? 'Resolved' : s === 'in-review' ? 'In Review' : 'Pending'; }
+function statusClass(s) { return s === 'resolved' ? 'sb-resolved' : s === 'in-review' ? 'sb-review' : 'sb-pending'; }
+
+async function trackById() {
+  const id = document.getElementById('trackInput').value.trim().toUpperCase();
+  const resultEl = document.getElementById('trackResult');
+  if (!id) { resultEl.innerHTML = '<div class="alert alert-error">Please enter a grievance ID.</div>'; return; }
+  const c = await DB.getComplaintById(id);
+  if (!c) { resultEl.innerHTML = `<div class="alert alert-error">No complaint found with ID <strong>${id}</strong>.</div>`; return; }
+
+  const steps = ['Submitted', 'Assigned', 'In Review', 'Resolved'];
+  const stepIdx = c.status === 'resolved' ? 3 : c.status === 'in-review' ? 2 : c.status === 'pending' && c.officer !== 'Pending assignment' ? 1 : 0;
+
+  const stepsHTML = steps.map((s, i) => {
+    const done = i < stepIdx;
+    const active = i === stepIdx;
+    const lineClass = i < stepIdx ? 'done' : '';
+    const dotContent = done ? '✓' : active ? '●' : '';
+    const stepClass = done ? 'done' : active ? 'active' : '';
+    const lineEl = i < 3 ? `<div class="ps-line ${lineClass}"></div>` : '';
+    return `
+      <div class="ps-step ${stepClass}">
+        <div class="ps-dot">${dotContent}</div>
+        <div class="ps-label">${s}</div>
+      </div>
+      ${lineEl}`;
+  }).join('');
+
+  const timelineHTML = c.timeline.map((t, i) => `
+    <div class="timeline-item">
+      <div class="tl-dot ${i < c.timeline.length - 1 ? 'done' : ''}"></div>
+      <div>
+        <div class="tl-text">${t.text}</div>
+        <div class="tl-date">${t.date}</div>
+      </div>
+    </div>`).join('');
+
+  resultEl.innerHTML = `
+    <div class="track-card">
+      <div class="track-header">
+        <div>
+          <div class="track-id">${c.id}</div>
+          <div class="track-meta">${c.type} · ${c.facility} · ${c.district}</div>
+          <div class="track-meta">Filed: ${c.filed} · Last updated: ${c.updated}</div>
+        </div>
+        <span class="status-badge ${statusClass(c.status)}">${statusLabel(c.status)}</span>
+      </div>
+      <div class="progress-steps">${stepsHTML}</div>
+      <div style="background:var(--bg2);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:700;color:var(--text4);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Assigned officer</div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">${c.officer}</div>
+      </div>
+      <div style="background:var(--bg2);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:700;color:var(--text4);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Your complaint</div>
+        <div style="font-size:14px;color:var(--text3);line-height:1.6">${c.description}</div>
+      </div>
+      <div class="timeline">
+        <div style="font-size:12px;font-weight:700;color:var(--text4);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Activity timeline</div>
+        ${timelineHTML}
+      </div>
+      ${c.status === 'resolved' ? `
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+          <div style="font-size:14px;font-weight:600;margin-bottom:10px">Rate this resolution</div>
+          <div style="display:flex;gap:8px" id="ratingRow">
+            ${[1,2,3,4,5].map(n => `<button onclick="rateComplaint(${n},'${c.id}')" style="width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border2);background:white;cursor:pointer;font-size:16px;transition:all .15s" onmouseover="this.style.background='var(--amber-light)'" onmouseout="this.style.background='white'">★</button>`).join('')}
+          </div>
+        </div>` : ''}
+    </div>`;
+}
+
+async function renderMyComplaints(mobile) {
+  const complaints = await DB.getUserComplaints(mobile);
+  const list = document.getElementById('myComplaintsList');
+  if (!complaints.length) { list.innerHTML = '<div class="empty-state"><p>You haven\'t filed any complaints yet.</p></div>'; return; }
+  list.innerHTML = complaints.map(c => `
+    <div class="complaint-row" onclick="document.getElementById('trackInput').value='${c.id}';trackById();window.scrollTo({top:0,behavior:'smooth'})">
+      <div>
+        <div class="cr-id">${c.id}</div>
+        <div class="cr-type">${c.type}</div>
+        <div class="cr-loc">${c.facility} · ${c.district}</div>
+      </div>
+      <span class="status-badge ${statusClass(c.status)}">${statusLabel(c.status)}</span>
+    </div>`).join('');
+}
+
+async function renderAllComplaints() {
+  const all = await DB.getComplaints();
+  const complaints = all.slice().reverse();
+  const list = document.getElementById('allComplaintsList');
+  list.innerHTML = complaints.map(c => `
+    <div class="complaint-row" onclick="document.getElementById('trackInput').value='${c.id}';trackById();window.scrollTo({top:0,behavior:'smooth'})">
+      <div>
+        <div class="cr-id">${c.id}</div>
+        <div class="cr-type">${c.type}</div>
+        <div class="cr-loc">${c.facility} · ${c.district}</div>
+      </div>
+      <span class="status-badge ${statusClass(c.status)}">${statusLabel(c.status)}</span>
+    </div>`).join('');
+}
+
+function rateComplaint(n, id) {
+  const row = document.getElementById('ratingRow');
+  row.innerHTML = `<div class="alert alert-success" style="margin:0">Thank you for rating ${n}/5! Your feedback helps improve services.</div>`;
+}
+</script>
+<script src="../js/translate.js"></script></body>
+</html>
+

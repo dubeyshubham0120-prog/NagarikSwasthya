@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NagarikSwasthya — Citizens Health Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+
+  <nav class="navbar" id="navbar">
+    <a href="map.html">🗺️ Live Map</a>
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <img src="images/logo.png" alt="Logo" class="logo-mark">
+        <span class="logo-text">NagarikSwasthya</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html" class="nav-link active">Home</a>
+        <a href="pages/file.html" class="nav-link">File Grievance</a>
+        <a href="pages/track.html" class="nav-link">Track</a>
+        <a href="pages/facilities.html" class="nav-link">Find Facility</a>
+        <a href="pages/schemes.html" class="nav-link">Schemes</a>
+      </div>
+      <div class="nav-actions">
+        <a href="pages/login.html" class="btn-ghost">Login</a>
+        <a href="pages/file.html" class="btn-primary-sm">File Grievance</a>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="index.html">Home</a>
+    <a href="map.html">🗺️ Live Map</a>
+    <a href="pages/file.html">File Grievance</a>
+    <a href="pages/track.html">Track</a>
+    <a href="pages/facilities.html">Find Facility</a>
+    <a href="pages/schemes.html">Schemes</a>
+    <a href="pages/login.html">Login</a>
+  </div>
+
+  <section class="hero">
+    <div class="hero-bg-grid"></div>
+    <div class="hero-content">
+      <div class="hero-badge animate-fade-up">Maharashtra Health Department</div>
+      <h1 class="hero-title animate-fade-up delay-1">
+        Your health.<br>Your right.<br><span class="accent">Your voice.</span>
+      </h1>
+      <p class="hero-sub animate-fade-up delay-2">File complaints, track resolutions, discover health schemes, and find
+        facilities near you — all in one place built for every citizen of Maharashtra.</p>
+      <div class="hero-cta animate-fade-up delay-3">
+        <a href="pages/file.html" class="btn-hero-primary">File a Grievance</a>
+        <a href="pages/track.html" class="btn-hero-outline">Track Complaint</a>
+      </div>
+      <div class="hero-stats animate-fade-up delay-4">
+        <div class="stat-pill"><strong id="counter1">0</strong> Complaints resolved</div>
+        <div class="stat-divider"></div>
+        <div class="stat-pill"><strong id="counter2">0</strong> Facilities listed</div>
+        <div class="stat-divider"></div>
+        <div class="stat-pill"><strong id="counter3">0</strong> Schemes available</div>
+      </div>
+    </div>
+    <div class="hero-visual animate-fade-in delay-2">
+      <div class="portal-card">
+        <div class="portal-card-header">
+          <div class="card-dots"><span></span><span></span><span></span></div>
+          <span class="card-url">nagarikswasthya.gov.in/track</span>
+        </div>
+        <div class="portal-card-body">
+          <div class="mini-grievance">
+            <div class="mini-gid">GRV-2026-00312</div>
+            <span class="mini-badge in-review">In Review</span>
+          </div>
+          <div class="mini-track">
+            <div class="mini-step done">
+              <div class="ms-dot">✓</div>
+              <div class="ms-label">Filed</div>
+            </div>
+            <div class="mini-line done"></div>
+            <div class="mini-step done">
+              <div class="ms-dot">✓</div>
+              <div class="ms-label">Assigned</div>
+            </div>
+            <div class="mini-line active"></div>
+            <div class="mini-step active">
+              <div class="ms-dot pulse"></div>
+              <div class="ms-label">Review</div>
+            </div>
+            <div class="mini-line"></div>
+            <div class="mini-step">
+              <div class="ms-dot"></div>
+              <div class="ms-label">Resolved</div>
+            </div>
+          </div>
+          <div class="mini-update">
+            <div class="update-dot"></div>
+            <span>Officer assigned: Priya Deshmukh, Pune District</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features-section">
+    <div class="section-inner">
+      <div class="section-label">What you can do</div>
+      <h2 class="section-title">Everything a citizen needs</h2>
+      <div class="features-grid">
+        <a href="pages/file.html" class="feature-card fc-blue">
+          <div class="fc-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M9 12h6M9 16h4M17 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V7l-4-4z" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+          </div>
+          <h3>File a complaint</h3>
+          <p>Report issues with hospitals, doctors, medicines, or government health schemes</p>
+          <div class="fc-arrow">→</div>
+        </a>
+        <a href="pages/track.html" class="feature-card fc-green">
+          <div class="fc-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+              <path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+            </svg>
+          </div>
+          <h3>Track status</h3>
+          <p>Get live updates on your complaint with a unique tracking ID sent to your phone</p>
+          <div class="fc-arrow">→</div>
+        </a>
+        <a href="pages/facilities.html" class="feature-card fc-teal">
+          <div class="fc-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor"
+                stroke-width="1.8" />
+              <circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="1.6" />
+            </svg>
+          </div>
+          <h3>Find facilities</h3>
+          <p>Locate PHCs, hospitals, blood banks, and ambulance services near you</p>
+          <div class="fc-arrow">→</div>
+        </a>
+        <a href="pages/schemes.html" class="feature-card fc-amber">
+          <div class="fc-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
+                stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" />
+            </svg>
+          </div>
+          <h3>Discover schemes</h3>
+          <p>Find health benefit schemes you're eligible for and learn how to enroll</p>
+          <div class="fc-arrow">→</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="quick-track-section">
+    <div class="section-inner">
+      <div class="qtrack-grid">
+        <div class="qtrack-left">
+          <div class="section-label">Quick track</div>
+          <h2 class="section-title">Already filed a complaint?</h2>
+          <p class="qtrack-sub">Enter your grievance ID below to instantly check your complaint status without logging
+            in.</p>
+        </div>
+        <div class="qtrack-right">
+          <div class="track-widget">
+            <input type="text" id="quickTrackId" placeholder="Enter grievance ID (e.g. GRV-2026-00312)"
+              class="track-input">
+            <button class="btn-track" onclick="quickTrack()">Track →</button>
+          </div>
+          <div id="quickTrackResult" class="track-result" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="how-section">
+    <div class="section-inner">
+      <div class="section-label">How it works</div>
+      <h2 class="section-title">Simple. Fast. Transparent.</h2>
+      <div class="steps-row">
+        <div class="step-item">
+          <div class="step-num">01</div>
+          <h4>Submit complaint</h4>
+          <p>Fill a simple form with your issue. No registration required for basic filing.</p>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item">
+          <div class="step-num">02</div>
+          <h4>Get tracking ID</h4>
+          <p>Receive a unique ID via SMS instantly after submission.</p>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item">
+          <div class="step-num">03</div>
+          <h4>Officer assigned</h4>
+          <p>Your complaint is routed to the right district officer automatically.</p>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item">
+          <div class="step-num">04</div>
+          <h4>Resolution & feedback</h4>
+          <p>You're notified when resolved. Rate the service to improve quality.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="recent-section">
+    <div class="section-inner">
+      <div class="section-label">Recent activity</div>
+      <h2 class="section-title">Complaints being resolved</h2>
+      <div class="recent-list" id="recentList"></div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="nav-logo" style="margin-bottom:8px">
+          <img src="images/logo.png" alt="Logo" class="logo-mark">
+          <span class="logo-text">NagarikSwasthya</span>
+        </div>
+        <p>A Maharashtra Government initiative to make healthcare accessible and accountable for every citizen.</p>
+      </div>
+      <div class="footer-links-group">
+        <h5>Portal</h5>
+        <a href="pages/file.html">File Grievance</a>
+        <a href="pages/track.html">Track Complaint</a>
+        <a href="pages/facilities.html">Find Facility</a>
+        <a href="pages/schemes.html">Health Schemes</a>
+      </div>
+      <div class="footer-links-group">
+        <h5>Help</h5>
+        <a href="#">FAQ</a>
+        <a href="#">Contact Us</a>
+        <a href="#">Helpline: 104</a>
+        <a href="#">Accessibility</a>
+      </div>
+      <div class="footer-links-group">
+        <h5>Language</h5>
+        <a href="#">मराठी</a>
+        <a href="#">हिंदी</a>
+        <a href="#">English</a>
+        <div style="margin-top:16px;border-top:1px solid rgba(255,255,255,0.1);padding-top:8px">
+          <a href="pages/admin.html" style="color:var(--text4);font-size:12px;">Admin Login</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Maharashtra Health Department. All rights reserved.</span>
+      <span>NIC Maharashtra · Data Privacy Policy</span>
+    </div>
+  </footer>
+
+  <script src="js/db.js"></script>
+  <script src="js/main.js"></script>
+<script src="js/translate.js"></script></body>
+
+</html>

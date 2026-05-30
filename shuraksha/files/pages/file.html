@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>File Grievance — NagarikSwasthya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../images/logo.png" alt="Logo" class="logo-mark"><span class="logo-text">NagarikSwasthya</span></a>
+    <div class="nav-links">
+      <a href="../index.html" class="nav-link">Home</a>
+      <a href="file.html" class="nav-link active">File Grievance</a>
+      <a href="track.html" class="nav-link">Track</a>
+      <a href="facilities.html" class="nav-link">Find Facility</a>
+      <a href="schemes.html" class="nav-link">Schemes</a>
+    </div>
+    <div class="nav-actions">
+      <a href="login.html" class="btn-ghost" id="navLoginBtn">Login</a>
+      <a href="file.html" class="btn-primary-sm">File Grievance</a>
+    </div>
+    <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="../index.html">Home</a>
+  <a href="file.html">File Grievance</a>
+  <a href="track.html">Track</a>
+  <a href="facilities.html">Find Facility</a>
+  <a href="schemes.html">Schemes</a>
+</div>
+
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <h1>File a Grievance</h1>
+    <p>Submit your complaint about any health service, facility, doctor, or scheme. You'll receive a tracking ID via SMS.</p>
+  </div>
+</div>
+
+<div class="page-content">
+  <div id="successBanner" class="success-banner">
+    <h4>Complaint submitted successfully!</h4>
+    <p>Your tracking ID is: <span class="tracking-id" id="newTrackId"></span></p>
+    <p style="margin-top:6px">We've recorded your complaint. An officer will be assigned within 24 hours. <a href="track.html" style="color:var(--green);font-weight:600">Track your complaint →</a></p>
+  </div>
+
+  <div id="grievanceForm">
+    <div class="form-card">
+      <h3>Personal details</h3>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Full name <span class="required">*</span></label>
+          <input type="text" id="fname" placeholder="Enter your full name">
+        </div>
+        <div class="form-group">
+          <label>Mobile number <span class="required">*</span></label>
+          <input type="tel" id="fmobile" placeholder="10-digit mobile number">
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Email (optional)</label>
+          <input type="email" id="femail" placeholder="your@email.com">
+        </div>
+        <div class="form-group">
+          <label>District <span class="required">*</span></label>
+          <select id="fdistrict">
+            <option value="">Select district</option>
+            <option>Pune</option><option>Mumbai</option><option>Nashik</option>
+            <option>Nagpur</option><option>Aurangabad</option><option>Kolhapur</option>
+            <option>Solapur</option><option>Satara</option><option>Sangli</option>
+            <option>Ahmednagar</option><option>Thane</option><option>Raigad</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <h3>Complaint details</h3>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label>Grievance type <span class="required">*</span></label>
+          <select id="ftype">
+            <option value="">Select type</option>
+            <option>Doctor Negligence</option>
+            <option>Hospital Facility</option>
+            <option>Medicine Unavailability</option>
+            <option>Scheme Enrollment</option>
+            <option>Ambulance Service</option>
+            <option>Staff Misconduct</option>
+            <option>Overcharging / Billing</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Facility / hospital name <span class="required">*</span></label>
+          <input type="text" id="ffacility" placeholder="e.g. Pimpri PHC">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Date of incident <span class="required">*</span></label>
+        <input type="date" id="fdate" max="">
+      </div>
+      <div class="form-group">
+        <label>Describe your complaint <span class="required">*</span></label>
+        <textarea id="fdesc" placeholder="Please describe what happened in detail. Include dates, names if known, and the impact on you."></textarea>
+        <div class="hint">Minimum 30 characters. Be as specific as possible for faster resolution.</div>
+      </div>
+      <div class="form-group">
+        <label>Anonymous filing</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text3);cursor:pointer">
+          <input type="checkbox" id="fanon" style="width:auto">
+          File this complaint anonymously (your name will not be shown publicly)
+        </label>
+      </div>
+    </div>
+
+    <div id="formError" class="alert alert-error" style="display:none"></div>
+    <button class="btn-submit" onclick="submitGrievance()">Submit Complaint →</button>
+    <p style="font-size:13px;color:var(--text4);margin-top:12px">By submitting, you confirm that the information is accurate to the best of your knowledge.</p>
+  </div>
+</div>
+
+<script src="../js/db.js"></script>
+<script>
+document.getElementById('fdate').max = new Date().toISOString().split('T')[0];
+
+document.getElementById('hamburger').addEventListener('click', () => {
+  document.getElementById('mobileMenu').classList.toggle('open');
+});
+
+const session = DB.getSession();
+if (session) {
+  document.getElementById('fname').value = session.name || '';
+  document.getElementById('fmobile').value = session.mobile || '';
+  document.getElementById('femail').value = session.email || '';
+  document.getElementById('fdistrict').value = session.district || '';
+  document.getElementById('navLoginBtn').textContent = session.name.split(' ')[0];
+}
+
+async function submitGrievance() {
+  const name = document.getElementById('fname').value.trim();
+  const mobile = document.getElementById('fmobile').value.trim();
+  const district = document.getElementById('fdistrict').value;
+  const type = document.getElementById('ftype').value;
+  const facility = document.getElementById('ffacility').value.trim();
+  const date = document.getElementById('fdate').value;
+  const desc = document.getElementById('fdesc').value.trim();
+  const errEl = document.getElementById('formError');
+
+  errEl.style.display = 'none';
+  if (!name) { showError('Please enter your full name.'); return; }
+  if (!mobile || !/^\d{10}$/.test(mobile)) { showError('Please enter a valid 10-digit mobile number.'); return; }
+  if (!district) { showError('Please select your district.'); return; }
+  if (!type) { showError('Please select a grievance type.'); return; }
+  if (!facility) { showError('Please enter the facility or hospital name.'); return; }
+  if (!date) { showError('Please enter the date of incident.'); return; }
+  if (desc.length < 30) { showError('Please describe your complaint in at least 30 characters.'); return; }
+
+  const complaint = await DB.addComplaint({ name, mobile, email: document.getElementById('femail').value, district, type, facility, description: desc, incidentDate: date });
+  if (!complaint) { showError('Failed to submit complaint. Please try again.'); return; }
+
+  document.getElementById('grievanceForm').style.display = 'none';
+  const banner = document.getElementById('successBanner');
+  banner.style.display = 'block';
+  document.getElementById('newTrackId').textContent = complaint.id;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Store for track page
+  sessionStorage.setItem('lastGrievanceId', complaint.id);
+}
+
+function showError(msg) {
+  const el = document.getElementById('formError');
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+</script>
+<script src="../js/translate.js"></script></body>
+</html>
+

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Health Schemes — NagarikSwasthya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../images/logo.png" alt="Logo" class="logo-mark"><span class="logo-text">NagarikSwasthya</span></a>
+    <div class="nav-links">
+      <a href="../index.html" class="nav-link">Home</a>
+      <a href="file.html" class="nav-link">File Grievance</a>
+      <a href="track.html" class="nav-link">Track</a>
+      <a href="facilities.html" class="nav-link">Find Facility</a>
+      <a href="schemes.html" class="nav-link active">Schemes</a>
+    </div>
+    <div class="nav-actions">
+      <a href="login.html" class="btn-ghost">Login</a>
+      <a href="file.html" class="btn-primary-sm">File Grievance</a>
+    </div>
+    <button class="hamburger" id="hamburger"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="../index.html">Home</a><a href="file.html">File Grievance</a>
+  <a href="track.html">Track</a><a href="facilities.html">Find Facility</a><a href="schemes.html">Schemes</a>
+</div>
+
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <h1>Health Schemes</h1>
+    <p>Discover government health schemes you may be eligible for. Click any scheme to learn how to enroll.</p>
+  </div>
+</div>
+
+<div class="page-content">
+  <div style="display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap">
+    <div class="filter-tab active" onclick="filterSchemes('all',this)" style="cursor:pointer;padding:6px 14px;border-radius:20px;border:1.5px solid var(--blue);background:var(--blue);color:white;font-size:13px;font-weight:500">All schemes</div>
+    <div class="filter-tab" onclick="filterSchemes('central',this)" style="cursor:pointer;padding:6px 14px;border-radius:20px;border:1.5px solid var(--border2);font-size:13px;font-weight:500;color:var(--text3)">Central govt.</div>
+    <div class="filter-tab" onclick="filterSchemes('state',this)" style="cursor:pointer;padding:6px 14px;border-radius:20px;border:1.5px solid var(--border2);font-size:13px;font-weight:500;color:var(--text3)">Maharashtra state</div>
+  </div>
+
+  <div class="schemes-grid" id="schemesGrid"></div>
+
+  <div style="margin-top:48px;padding:28px;background:var(--blue-light);border-radius:var(--radius-lg);border:1px solid #bfdbfe">
+    <h3 style="font-size:20px;margin-bottom:8px;color:var(--blue)">Not sure which scheme you qualify for?</h3>
+    <p style="font-size:14px;color:#1e40af;margin-bottom:16px">Call the Maharashtra Health Helpline for free guidance on scheme enrollment and eligibility verification.</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <div style="background:white;border-radius:var(--radius);padding:14px 20px;text-align:center;min-width:140px">
+        <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--blue)">104</div>
+        <div style="font-size:12px;color:var(--text4)">Health helpline</div>
+      </div>
+      <div style="background:white;border-radius:var(--radius);padding:14px 20px;text-align:center;min-width:140px">
+        <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--blue)">108</div>
+        <div style="font-size:12px;color:var(--text4)">Emergency ambulance</div>
+      </div>
+      <div style="background:white;border-radius:var(--radius);padding:14px 20px;text-align:center;min-width:140px">
+        <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--blue)">1800-233-4950</div>
+        <div style="font-size:12px;color:var(--text4)">MJPJAY helpline (toll-free)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/db.js"></script>
+<script>
+document.getElementById('hamburger').addEventListener('click',()=>document.getElementById('mobileMenu').classList.toggle('open'));
+let activeSchemeFilter = 'all';
+
+function filterSchemes(type, el) {
+  activeSchemeFilter = type;
+  document.querySelectorAll('#schemesGrid').forEach(()=>{});
+  document.querySelectorAll('.filter-tab,[onclick*=filterSchemes]').forEach(b => {
+    b.style.background = 'white'; b.style.color = 'var(--text3)'; b.style.borderColor = 'var(--border2)';
+  });
+  el.style.background = 'var(--blue)'; el.style.color = 'white'; el.style.borderColor = 'var(--blue)';
+  renderSchemes();
+}
+
+function renderSchemes() {
+  const list = activeSchemeFilter === 'all' ? SCHEMES : SCHEMES.filter(s => s.tag === activeSchemeFilter);
+  document.getElementById('schemesGrid').innerHTML = list.map(s => `
+    <div class="scheme-card">
+      <span class="scheme-tag ${s.tag}">${s.tag === 'central' ? 'Central Govt.' : 'Maharashtra State'}</span>
+      <h3>${s.name}</h3>
+      <p>${s.description}</p>
+      <div class="scheme-benefit">Benefit: ${s.benefit}</div>
+      <div class="scheme-eligibility"><strong>Eligibility:</strong> ${s.eligibility}</div>
+      <button class="btn-scheme" onclick="showEnroll('${s.name.replace(/'/g,'\\'')}')">How to enroll →</button>
+    </div>`).join('');
+}
+
+function showEnroll(name) {
+  alert(`To enroll in "${name}":\n\n1. Visit your nearest District Civil Hospital or PHC\n2. Carry: Aadhaar card, Ration card, Income certificate (BPL)\n3. Ask for the scheme enrollment desk\n4. You can also call 104 for guidance\n\nFor online enrollment: visit mahaonline.gov.in`);
+}
+
+renderSchemes();
+</script>
+<script src="../js/translate.js"></script></body>
+</html>
+
